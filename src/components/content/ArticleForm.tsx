@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -50,7 +49,7 @@ const articleFormSchema = z.object({
     .min(10, "Brief must be at least 10 characters")
     .max(500, "Brief cannot exceed 500 characters"),
   content: z.string().min(10, "Article content is required"),
-  category: z.enum(["Market Trends", "Finance", "Real Estate", "Other"]),
+  category: z.enum(["Market Trends", "Finance", "Real Estate", "Technology", "Other"]),
   date: z.date(),
   published: z.boolean().default(false),
 });
@@ -147,6 +146,7 @@ export const ArticleForm = ({
                         <SelectItem value="Market Trends">Market Trends</SelectItem>
                         <SelectItem value="Finance">Finance</SelectItem>
                         <SelectItem value="Real Estate">Real Estate</SelectItem>
+                        <SelectItem value="Technology">Technology</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>

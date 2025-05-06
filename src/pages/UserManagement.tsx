@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -128,10 +127,10 @@ const UserManagement = () => {
       sortable: true,
     },
     {
-      header: "Role",
-      accessorKey: "role" as keyof User,
+      header: "NMLS#",
+      accessorKey: "nmls" as keyof User,
       cell: (user: User) => (
-        <span className="capitalize">{user.role}</span>
+        <span>{user.nmls || "N/A"}</span>
       ),
       sortable: true,
     },
