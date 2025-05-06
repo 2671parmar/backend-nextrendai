@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -23,7 +24,6 @@ import PromptForm from "@/components/prompts/PromptForm";
 import PromptHistory from "@/components/prompts/PromptHistory";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockPrompts } from "@/data/mockData";
 import { MasterPrompt } from "@/types";
 
@@ -40,19 +40,6 @@ const promptTypeIcons: Record<string, React.ReactNode> = {
   "Motivational Quote Prompt": <Star className="h-4 w-4" />
 };
 
-const promptTypes = [
-  "Master Prompt",
-  "LinkedIn Prompt",
-  "Blog Post Prompt",
-  "Video Script Prompt",
-  "Email Prompt",
-  "Social Prompt",
-  "X/Twitter Prompt",
-  "SMS Client Prompt",
-  "SMS Realtor Prompt",
-  "Motivational Quote Prompt"
-];
-
 const MasterPrompts = () => {
   const [prompts, setPrompts] = useState<MasterPrompt[]>(mockPrompts);
   const [selectedPrompt, setSelectedPrompt] = useState<MasterPrompt | null>(null);
@@ -60,7 +47,6 @@ const MasterPrompts = () => {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [selectedType, setSelectedType] = useState<string>("all");
 
   const handleAddPrompt = () => {
     setIsEdit(false);
@@ -187,10 +173,6 @@ const MasterPrompts = () => {
     }
   };
 
-  const filteredPrompts = selectedType === "all" 
-    ? prompts 
-    : prompts.filter(prompt => prompt.type === selectedType);
-
   const columns = [
     {
       header: "Prompt Name",
@@ -274,23 +256,9 @@ const MasterPrompts = () => {
         }}
       />
       
-      <div className="mb-6">
-        <Tabs defaultValue="all" onValueChange={(value) => setSelectedType(value)} className="w-full">
-          <TabsList className="flex flex-wrap mb-4">
-            <TabsTrigger value="all" className="mb-1">All Prompts</TabsTrigger>
-            {promptTypes.map((type) => (
-              <TabsTrigger key={type} value={type} className="mb-1 flex items-center gap-2">
-                {promptTypeIcons[type]}
-                {type}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-      
       <DataTable
         columns={columns}
-        data={filteredPrompts}
+        data={prompts}
         searchField="name"
         onRowClick={(prompt) => handleEditPrompt(prompt)}
       />

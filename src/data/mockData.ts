@@ -1,4 +1,3 @@
-
 import { ContentArticle, ContentCategory, MasterPrompt, Role, User } from "@/types";
 
 export const mockUsers: User[] = [
@@ -47,51 +46,171 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockPrompts: MasterPrompt[] = [
+export const mockPrompts = [
   {
     id: "1",
-    name: "MBS Commentary Generator",
-    content: "You are a mortgage market expert writing a daily MBS commentary. Your goal is to explain today's mortgage bond market movements in simple terms that mortgage professionals can share with their clients. Break down complex concepts and avoid technical jargon. Include: 1) A brief overview of today's MBS price movements, 2) How these movements might affect mortgage rates, 3) Key factors influencing today's market (economic data, Fed decisions, global events, etc.), 4) A simple explanation of what this means for homebuyers and homeowners considering refinancing. Keep the tone professional but conversational. The total commentary should be 300-400 words.",
+    name: "Master Prompt",
+    content: "This is a master prompt that controls the AI behavior across all platforms.",
     type: "Master Prompt",
     version: "v1.2",
-    updatedAt: new Date("2024-04-28"),
+    updatedAt: new Date('2023-12-20'),
     history: [
       {
         version: "v1.2",
-        content: "You are a mortgage market expert writing a daily MBS commentary. Your goal is to explain today's mortgage bond market movements in simple terms that mortgage professionals can share with their clients. Break down complex concepts and avoid technical jargon. Include: 1) A brief overview of today's MBS price movements, 2) How these movements might affect mortgage rates, 3) Key factors influencing today's market (economic data, Fed decisions, global events, etc.), 4) A simple explanation of what this means for homebuyers and homeowners considering refinancing. Keep the tone professional but conversational. The total commentary should be 300-400 words.",
-        updatedAt: new Date("2024-04-28"),
+        content: "This is a master prompt that controls the AI behavior across all platforms.",
+        updatedAt: new Date('2023-12-20'),
       },
       {
         version: "v1.1",
-        content: "You are a mortgage market expert writing a daily MBS commentary. Explain today's mortgage bond market movements in simple terms for mortgage professionals to share with clients. Avoid technical jargon. Include: 1) Today's MBS price movements, 2) Effects on mortgage rates, 3) Key influential factors, 4) What this means for homebuyers and refinancers. Keep tone professional but accessible. Commentary should be 300-400 words.",
-        updatedAt: new Date("2024-03-15"),
+        content: "This is a master prompt that controls the AI behavior.",
+        updatedAt: new Date('2023-12-10'),
       },
       {
         version: "v1.0",
-        content: "Create a daily MBS market commentary for mortgage professionals. Explain bond price movements, rate impacts, and market factors. Make it client-friendly and 300 words max.",
-        updatedAt: new Date("2024-02-01"),
-      },
-    ],
+        content: "This is a master prompt.",
+        updatedAt: new Date('2023-12-01'),
+      }
+    ]
   },
   {
     id: "2",
-    name: "Trending Topics Article Generator",
-    content: "You are a mortgage industry content creator writing an informative article about a trending topic in real estate or mortgages. Your article should be educational, timely, and provide value to potential homebuyers or current homeowners. Include: 1) A compelling headline that clearly states the topic, 2) An introduction that explains why this topic matters now, 3) 3-5 main points with subheadings, 4) Practical tips or action items readers can take, 5) A conclusion that summarizes the key takeaways. Avoid industry jargon, and when technical terms must be used, explain them clearly. The tone should match the client's brand voice as specified. The article should be 600-800 words and formatted for easy reading with short paragraphs and bulleted lists where appropriate.",
-    type: "Blog Post Prompt",
-    version: "v2.0",
-    updatedAt: new Date("2024-05-01"),
+    name: "LinkedIn Prompt",
+    content: "Generate professional LinkedIn posts focused on mortgage and real estate industry insights.",
+    type: "LinkedIn Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-15'),
     history: [
       {
-        version: "v2.0",
-        content: "You are a mortgage industry content creator writing an informative article about a trending topic in real estate or mortgages. Your article should be educational, timely, and provide value to potential homebuyers or current homeowners. Include: 1) A compelling headline that clearly states the topic, 2) An introduction that explains why this topic matters now, 3) 3-5 main points with subheadings, 4) Practical tips or action items readers can take, 5) A conclusion that summarizes the key takeaways. Avoid industry jargon, and when technical terms must be used, explain them clearly. The tone should match the client's brand voice as specified. The article should be 600-800 words and formatted for easy reading with short paragraphs and bulleted lists where appropriate.",
-        updatedAt: new Date("2024-05-01"),
+        version: "v1.0",
+        content: "Generate professional LinkedIn posts focused on mortgage and real estate industry insights.",
+        updatedAt: new Date('2023-12-15'),
+      }
+    ]
+  },
+  {
+    id: "3",
+    name: "Blog Post Prompt",
+    content: "Create informative blog posts about mortgage trends, interest rates, and housing market analysis.",
+    type: "Blog Post Prompt", 
+    version: "v1.1",
+    updatedAt: new Date('2023-12-18'),
+    history: [
+      {
+        version: "v1.1",
+        content: "Create informative blog posts about mortgage trends, interest rates, and housing market analysis.",
+        updatedAt: new Date('2023-12-18'),
       },
       {
         version: "v1.0",
-        content: "Write an informative article about a current trend in mortgages or real estate. Include a headline, introduction, main points, and conclusion. Make it educational and avoid jargon. 600-800 words.",
-        updatedAt: new Date("2024-02-15"),
-      },
-    ],
+        content: "Create informative blog posts about mortgage trends.",
+        updatedAt: new Date('2023-12-05'),
+      }
+    ]
+  },
+  {
+    id: "4",
+    name: "Video Script Prompt",
+    content: "Generate engaging video scripts explaining mortgage concepts and market updates.",
+    type: "Video Script Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-13'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Generate engaging video scripts explaining mortgage concepts and market updates.",
+        updatedAt: new Date('2023-12-13'),
+      }
+    ]
+  },
+  {
+    id: "5",
+    name: "Email Prompt",
+    content: "Create personalized email templates for client outreach and follow-up communications.",
+    type: "Email Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-10'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Create personalized email templates for client outreach and follow-up communications.",
+        updatedAt: new Date('2023-12-10'),
+      }
+    ]
+  },
+  {
+    id: "6",
+    name: "Social Prompt",
+    content: "Generate engaging social media content for multiple platforms focused on mortgage and real estate topics.",
+    type: "Social Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-08'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Generate engaging social media content for multiple platforms focused on mortgage and real estate topics.",
+        updatedAt: new Date('2023-12-08'),
+      }
+    ]
+  },
+  {
+    id: "7",
+    name: "X/Twitter Prompt",
+    content: "Create concise, informative tweets about mortgage rates, housing market updates, and financial tips.",
+    type: "X/Twitter Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-05'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Create concise, informative tweets about mortgage rates, housing market updates, and financial tips.",
+        updatedAt: new Date('2023-12-05'),
+      }
+    ]
+  },
+  {
+    id: "8",
+    name: "SMS Client Prompt",
+    content: "Generate short, personalized SMS messages for client communication and updates.",
+    type: "SMS Client Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-03'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Generate short, personalized SMS messages for client communication and updates.",
+        updatedAt: new Date('2023-12-03'),
+      }
+    ]
+  },
+  {
+    id: "9",
+    name: "SMS Realtor Prompt",
+    content: "Create professional SMS templates for realtor partner communications and referrals.",
+    type: "SMS Realtor Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-12-01'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Create professional SMS templates for realtor partner communications and referrals.",
+        updatedAt: new Date('2023-12-01'),
+      }
+    ]
+  },
+  {
+    id: "10",
+    name: "Motivational Quote Prompt",
+    content: "Generate inspirational quotes related to homeownership, financial success, and personal growth.",
+    type: "Motivational Quote Prompt",
+    version: "v1.0",
+    updatedAt: new Date('2023-11-28'),
+    history: [
+      {
+        version: "v1.0",
+        content: "Generate inspirational quotes related to homeownership, financial success, and personal growth.",
+        updatedAt: new Date('2023-11-28'),
+      }
+    ]
   },
 ];
 

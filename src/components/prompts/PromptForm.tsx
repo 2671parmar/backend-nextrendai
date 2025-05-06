@@ -131,7 +131,7 @@ export const PromptForm = ({
                 <FormItem>
                   <FormLabel>Prompt Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., MBS Commentary Generator" {...field} />
+                    <Input placeholder="e.g., Master Prompt" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
