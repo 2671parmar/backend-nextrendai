@@ -26,7 +26,7 @@ export interface MasterPrompt {
   }[];
 }
 
-export type ContentCategory = "Market Trends" | "Finance" | "Real Estate" | "Other";
+export type ContentCategory = "Market Trends" | "Finance" | "Real Estate" | "Technology" | "Other";
 
 export interface ContentArticle {
   id: string;
