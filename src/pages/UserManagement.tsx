@@ -142,6 +142,21 @@ const UserManagement = () => {
       sortable: true,
     },
     {
+      header: "Brand Voice",
+      accessorKey: "brandVoice" as keyof User,
+      cell: (user: User) => (
+        <div className="max-w-xs">
+          {user.brandVoice ? (
+            <p className="text-sm truncate" title={user.brandVoice}>
+              {user.brandVoice.length > 0 ? user.brandVoice.substring(0, 250) : "DEFAULT"}
+            </p>
+          ) : (
+            <span className="text-muted-foreground">DEFAULT</span>
+          )}
+        </div>
+      ),
+    },
+    {
       header: "Actions",
       accessorKey: "id" as keyof User,
       cell: (user: User) => (
