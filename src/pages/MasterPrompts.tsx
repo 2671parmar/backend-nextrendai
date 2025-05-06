@@ -52,7 +52,7 @@ const MasterPrompts = () => {
     }
   };
 
-  const handlePromptSubmit = (data: { name: string; content: string }) => {
+  const handlePromptSubmit = (data: { name: string; content: string; type: string }) => {
     if (isEdit && selectedPrompt) {
       // Create new version with incremented version number
       const versionParts = selectedPrompt.version.split('v')[1].split('.');
@@ -64,6 +64,7 @@ const MasterPrompts = () => {
         ...selectedPrompt,
         name: data.name,
         content: data.content,
+        type: data.type,
         version: newVersion,
         updatedAt: new Date(),
         history: [
@@ -88,6 +89,7 @@ const MasterPrompts = () => {
         id: `${prompts.length + 1}`,
         name: data.name,
         content: data.content,
+        type: data.type,
         version: "v1.0",
         updatedAt: new Date(),
         history: [
@@ -148,6 +150,11 @@ const MasterPrompts = () => {
     {
       header: "Prompt Name",
       accessorKey: "name" as keyof MasterPrompt,
+      sortable: true,
+    },
+    {
+      header: "Prompt Type",
+      accessorKey: "type" as keyof MasterPrompt,
       sortable: true,
     },
     {

@@ -1,4 +1,3 @@
-
 export type Role = "admin" | "team";
 
 export interface User {
@@ -17,13 +16,16 @@ export interface MasterPrompt {
   id: string;
   name: string;
   content: string;
+  type: string;
   version: string;
   updatedAt: Date;
-  history: {
-    version: string;
-    content: string;
-    updatedAt: Date;
-  }[];
+  history: PromptHistoryItem[];
+}
+
+export interface PromptHistoryItem {
+  version: string;
+  content: string;
+  updatedAt: Date;
 }
 
 export type ContentCategory = "Market Trends" | "Finance" | "Real Estate" | "Technology" | "Other";

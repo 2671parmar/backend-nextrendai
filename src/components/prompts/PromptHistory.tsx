@@ -41,9 +41,14 @@ export const PromptHistory = ({
         </DialogHeader>
         
         <div className="py-4">
-          <h3 className="font-semibold mb-2">
-            {prompt.name} (Current: {prompt.version})
-          </h3>
+          <div className="mb-4">
+            <h3 className="font-semibold">
+              {prompt.name} (Current: {prompt.version})
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Type: {prompt.type}
+            </p>
+          </div>
           
           <Accordion type="single" collapsible className="w-full">
             {prompt.history.map((version, index) => (
