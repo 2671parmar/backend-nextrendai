@@ -1,8 +1,21 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Plus, Trash2, PenLine, Clock } from "lucide-react";
+import { 
+  Plus, 
+  Trash2, 
+  PenLine, 
+  Clock, 
+  Book, 
+  Linkedin, 
+  BookText, 
+  Video, 
+  Mail, 
+  MessageSquare, 
+  Twitter, 
+  Sms, 
+  Star 
+} from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
@@ -10,8 +23,35 @@ import PromptForm from "@/components/prompts/PromptForm";
 import PromptHistory from "@/components/prompts/PromptHistory";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockPrompts } from "@/data/mockData";
 import { MasterPrompt } from "@/types";
+
+const promptTypeIcons: Record<string, React.ReactNode> = {
+  "Master Prompt": <Book className="h-4 w-4" />,
+  "LinkedIn Prompt": <Linkedin className="h-4 w-4" />,
+  "Blog Post Prompt": <BookText className="h-4 w-4" />,
+  "Video Script Prompt": <Video className="h-4 w-4" />,
+  "Email Prompt": <Mail className="h-4 w-4" />,
+  "Social Prompt": <MessageSquare className="h-4 w-4" />,
+  "X/Twitter Prompt": <Twitter className="h-4 w-4" />,
+  "SMS Client Prompt": <Sms className="h-4 w-4" />,
+  "SMS Realtor Prompt": <Sms className="h-4 w-4" />,
+  "Motivational Quote Prompt": <Star className="h-4 w-4" />
+};
+
+const promptTypes = [
+  "Master Prompt",
+  "LinkedIn Prompt",
+  "Blog Post Prompt",
+  "Video Script Prompt",
+  "Email Prompt",
+  "Social Prompt",
+  "X/Twitter Prompt",
+  "SMS Client Prompt",
+  "SMS Realtor Prompt",
+  "Motivational Quote Prompt"
+];
 
 const MasterPrompts = () => {
   const [prompts, setPrompts] = useState<MasterPrompt[]>(mockPrompts);
@@ -20,6 +60,7 @@ const MasterPrompts = () => {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [selectedType, setSelectedType] = useState<string>("all");
 
   const handleAddPrompt = () => {
     setIsEdit(false);
@@ -146,6 +187,10 @@ const MasterPrompts = () => {
     }
   };
 
+  const filteredPrompts = selectedType === "all" 
+    ? prompts 
+    : prompts.filter(prompt => prompt.type === selectedType);
+
   const columns = [
     {
       header: "Prompt Name",
@@ -156,6 +201,12 @@ const MasterPrompts = () => {
       header: "Prompt Type",
       accessorKey: "type" as keyof MasterPrompt,
       sortable: true,
+      cell: (prompt: MasterPrompt) => (
+        <div className="flex items-center gap-2">
+          {promptTypeIcons[prompt.type] || null}
+          <span>{prompt.type}</span>
+        </div>
+      ),
     },
     {
       header: "Version",
@@ -223,9 +274,23 @@ const MasterPrompts = () => {
         }}
       />
       
+      <div className="mb-6">
+        <Tabs defaultValue="all" onValueChange={(value) => setSelectedType(value)} className="w-full">
+          <TabsList className="flex flex-wrap mb-4">
+            <TabsTrigger value="all" className="mb-1">All Prompts</TabsTrigger>
+            {promptTypes.map((type) => (
+              <TabsTrigger key={type} value={type} className="mb-1 flex items-center gap-2">
+                {promptTypeIcons[type]}
+                {type}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+      
       <DataTable
         columns={columns}
-        data={prompts}
+        data={filteredPrompts}
         searchField="name"
         onRowClick={(prompt) => handleEditPrompt(prompt)}
       />

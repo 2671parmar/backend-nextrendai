@@ -28,6 +28,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { 
+  Book, 
+  Linkedin, 
+  BookText, 
+  Video, 
+  Mail, 
+  MessageSquare, 
+  Twitter, 
+  Sms, 
+  Star 
+} from "lucide-react";
 import { MasterPrompt } from "@/types";
 
 const promptTypes = [
@@ -42,6 +53,19 @@ const promptTypes = [
   "SMS Realtor Prompt",
   "Motivational Quote Prompt"
 ];
+
+const promptTypeIcons: Record<string, React.ReactNode> = {
+  "Master Prompt": <Book className="h-4 w-4" />,
+  "LinkedIn Prompt": <Linkedin className="h-4 w-4" />,
+  "Blog Post Prompt": <BookText className="h-4 w-4" />,
+  "Video Script Prompt": <Video className="h-4 w-4" />,
+  "Email Prompt": <Mail className="h-4 w-4" />,
+  "Social Prompt": <MessageSquare className="h-4 w-4" />,
+  "X/Twitter Prompt": <Twitter className="h-4 w-4" />,
+  "SMS Client Prompt": <Sms className="h-4 w-4" />,
+  "SMS Realtor Prompt": <Sms className="h-4 w-4" />,
+  "Motivational Quote Prompt": <Star className="h-4 w-4" />
+};
 
 const promptFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -126,12 +150,22 @@ export const PromptForm = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select prompt type" />
+                        <SelectValue placeholder="Select prompt type">
+                          {field.value && (
+                            <div className="flex items-center gap-2">
+                              {promptTypeIcons[field.value]}
+                              <span>{field.value}</span>
+                            </div>
+                          )}
+                        </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {promptTypes.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                        <SelectItem key={type} value={type} className="flex items-center gap-2">
+                          <span className="mr-2">{promptTypeIcons[type]}</span>
+                          {type}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
