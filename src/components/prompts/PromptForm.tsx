@@ -36,7 +36,7 @@ import {
   Mail, 
   MessageSquare, 
   Twitter, 
-  Sms, 
+  MessageCircle, 
   Star 
 } from "lucide-react";
 import { MasterPrompt } from "@/types";
@@ -62,8 +62,8 @@ const promptTypeIcons: Record<string, React.ReactNode> = {
   "Email Prompt": <Mail className="h-4 w-4" />,
   "Social Prompt": <MessageSquare className="h-4 w-4" />,
   "X/Twitter Prompt": <Twitter className="h-4 w-4" />,
-  "SMS Client Prompt": <Sms className="h-4 w-4" />,
-  "SMS Realtor Prompt": <Sms className="h-4 w-4" />,
+  "SMS Client Prompt": <MessageCircle className="h-4 w-4" />,
+  "SMS Realtor Prompt": <MessageCircle className="h-4 w-4" />,
   "Motivational Quote Prompt": <Star className="h-4 w-4" />
 };
 
