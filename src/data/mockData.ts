@@ -52,6 +52,7 @@ export const mockPrompts: MasterPrompt[] = [
     id: "1",
     name: "MBS Commentary Generator",
     content: "You are a mortgage market expert writing a daily MBS commentary. Your goal is to explain today's mortgage bond market movements in simple terms that mortgage professionals can share with their clients. Break down complex concepts and avoid technical jargon. Include: 1) A brief overview of today's MBS price movements, 2) How these movements might affect mortgage rates, 3) Key factors influencing today's market (economic data, Fed decisions, global events, etc.), 4) A simple explanation of what this means for homebuyers and homeowners considering refinancing. Keep the tone professional but conversational. The total commentary should be 300-400 words.",
+    type: "Master Prompt",
     version: "v1.2",
     updatedAt: new Date("2024-04-28"),
     history: [
@@ -76,6 +77,7 @@ export const mockPrompts: MasterPrompt[] = [
     id: "2",
     name: "Trending Topics Article Generator",
     content: "You are a mortgage industry content creator writing an informative article about a trending topic in real estate or mortgages. Your article should be educational, timely, and provide value to potential homebuyers or current homeowners. Include: 1) A compelling headline that clearly states the topic, 2) An introduction that explains why this topic matters now, 3) 3-5 main points with subheadings, 4) Practical tips or action items readers can take, 5) A conclusion that summarizes the key takeaways. Avoid industry jargon, and when technical terms must be used, explain them clearly. The tone should match the client's brand voice as specified. The article should be 600-800 words and formatted for easy reading with short paragraphs and bulleted lists where appropriate.",
+    type: "Blog Post Prompt",
     version: "v2.0",
     updatedAt: new Date("2024-05-01"),
     history: [
