@@ -31,7 +31,8 @@ const SidebarItem = ({ icon, title, path, active }: SidebarItemProps) => {
         )}
       >
         <span className="text-inherit">{icon}</span>
-        <span>{title}</span>
+        {/* Only render the title when the sidebar is open */}
+        <span className="transition-opacity duration-200 overflow-hidden whitespace-nowrap">{title}</span>
       </button>
     </li>
   );
@@ -99,7 +100,7 @@ const Sidebar = ({ isOpen, userRole }: SidebarProps) => {
             <SidebarItem
               key={item.path}
               icon={item.icon}
-              title={item.title}
+              title={isOpen ? item.title : ""}
               path={item.path}
               active={currentPath === item.path}
             />
