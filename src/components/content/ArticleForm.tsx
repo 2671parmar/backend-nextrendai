@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,6 +39,18 @@ import { ContentArticle, ContentCategory } from "@/types";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const trendingCategories = [
+  "Trending",
+  "Mortgage",
+  "Housing",
+  "Economy",
+];
+const mbsCategories = [
+  "Daily",
+  "Weekly",
+  "Monthly",
+];
+
 const articleFormSchema = z.object({
   title: z
     .string()
@@ -49,7 +61,7 @@ const articleFormSchema = z.object({
     .min(10, "Brief must be at least 10 characters")
     .max(500, "Brief cannot exceed 500 characters"),
   content: z.string().min(10, "Article content is required"),
-  category: z.enum(["Market Trends", "Finance", "Real Estate", "Technology", "Other"]),
+  category: z.string(),
   date: z.date(),
   published: z.boolean().default(false),
 });
@@ -60,7 +72,7 @@ interface ArticleFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: ArticleFormValues) => void;
-  defaultValues?: Partial<ContentArticle>;
+  defaultValues?: any; // Accept any to allow description/is_generating
   isEdit?: boolean;
   contentType: "mbs" | "trending";
 }
@@ -80,13 +92,29 @@ export const ArticleForm = ({
     resolver: zodResolver(articleFormSchema),
     defaultValues: {
       title: defaultValues?.title || "",
-      brief: defaultValues?.brief || "",
+      brief: defaultValues?.brief || defaultValues?.description || "",
       content: defaultValues?.content || "",
-      category: (defaultValues?.category as ContentCategory) || "Market Trends",
-      date: defaultValues?.date || new Date(),
-      published: defaultValues?.published || false,
+      category: defaultValues?.category || (contentType === "mbs" ? mbsCategories[0] : trendingCategories[0]),
+      date: defaultValues?.date ? new Date(defaultValues.date) : new Date(),
+      published: typeof defaultValues?.published === "boolean"
+        ? defaultValues.published
+        : (defaultValues?.is_generating === false),
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      title: defaultValues?.title || "",
+      brief: defaultValues?.brief || defaultValues?.description || "",
+      content: defaultValues?.content || "",
+      category: defaultValues?.category || (contentType === "mbs" ? mbsCategories[0] : trendingCategories[0]),
+      date: defaultValues?.date ? new Date(defaultValues.date) : new Date(),
+      published: typeof defaultValues?.published === "boolean"
+        ? defaultValues.published
+        : (defaultValues?.is_generating === false),
+    });
+    // eslint-disable-next-line
+  }, [defaultValues, contentType]);
 
   const contentValue = form.watch("content");
 
@@ -135,7 +163,7 @@ export const ArticleForm = ({
                     <FormLabel>Category</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -143,11 +171,9 @@ export const ArticleForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Market Trends">Market Trends</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Real Estate">Real Estate</SelectItem>
-                        <SelectItem value="Technology">Technology</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
+                        {(contentType === "mbs" ? mbsCategories : trendingCategories).map((cat) => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -197,6 +223,7 @@ export const ArticleForm = ({
                 )}
               />
 
+              {/*
               <FormField
                 control={form.control}
                 name="published"
@@ -214,6 +241,7 @@ export const ArticleForm = ({
                   </FormItem>
                 )}
               />
+              */}
             </div>
 
             <FormField

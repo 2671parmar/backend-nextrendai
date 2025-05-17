@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Plus, Download, Trash2, PenLine, Eye } from "lucide-react";
@@ -10,7 +9,7 @@ import ArticleForm from "@/components/content/ArticleForm";
 import StatusBadge from "@/components/common/StatusBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { mockTrendingTopics } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
 import { ContentArticle } from "@/types";
 import {
   Dialog,
@@ -20,13 +19,46 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+const PAGE_SIZE = 10;
+
 const TrendingTopics = () => {
-  const [articles, setArticles] = useState<ContentArticle[]>(mockTrendingTopics);
+  const [articles, setArticles] = useState<ContentArticle[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<ContentArticle | null>(null);
   const [isArticleFormOpen, setIsArticleFormOpen] = useState(false);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase
+        .from("trending_articles")
+        .select("id, title, description, content, category, date, last_scraped, is_generating", { count: "exact" })
+        .order("date", { ascending: false })
+        .range(from, to);
+      if (!error && data) {
+        setArticles(
+          data.map((item) => ({
+            id: item.id,
+            title: item.title,
+            brief: item.description,
+            content: item.content,
+            category: item.category,
+            date: item.date ? new Date(item.date) : new Date(),
+            createdBy: "", // Not available in table
+            updatedAt: item.last_scraped ? new Date(item.last_scraped) : new Date(),
+            published: !item.is_generating, // Example logic
+          }))
+        );
+        setTotalCount(count || 0);
+      }
+    };
+    fetchArticles();
+  }, [page]);
 
   const handleAddArticle = () => {
     setIsEdit(false);
@@ -50,55 +82,102 @@ const TrendingTopics = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDeleteArticle = () => {
+  const handleArticleSubmit = async (data: Partial<ContentArticle>) => {
+    if (isEdit && selectedArticle) {
+      // Update in Supabase
+      const { error } = await supabase
+        .from("trending_articles")
+        .update({
+          title: data.title,
+          description: data.brief,
+          content: data.content,
+          category: data.category,
+          date: data.date,
+          is_generating: !data.published,
+          last_scraped: new Date().toISOString(),
+        })
+        .eq("id", selectedArticle.id);
+      if (!error) {
+        setArticles(
+          articles.map((article) =>
+            article.id === selectedArticle.id
+              ? {
+                  ...article,
+                  ...data,
+                  brief: data.brief,
+                  updatedAt: new Date(),
+                }
+              : article
+          )
+        );
+        toast.success(`Trending Topic updated successfully`);
+      } else {
+        toast.error("Failed to update article");
+      }
+    } else {
+      // Insert in Supabase
+      const { data: inserted, error } = await supabase
+        .from("trending_articles")
+        .insert({
+          title: data.title,
+          description: data.brief,
+          content: data.content,
+          category: data.category,
+          date: data.date,
+          is_generating: !data.published,
+          last_scraped: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (!error && inserted) {
+        setArticles([
+          {
+            id: inserted.id,
+            title: inserted.title,
+            brief: inserted.description,
+            content: inserted.content,
+            category: inserted.category,
+            date: inserted.date ? new Date(inserted.date) : new Date(),
+            createdBy: "",
+            updatedAt: inserted.last_scraped ? new Date(inserted.last_scraped) : new Date(),
+            published: !inserted.is_generating,
+          },
+          ...articles,
+        ]);
+        toast.success(`Trending Topic created successfully`);
+      } else {
+        toast.error("Failed to create article");
+      }
+    }
+    setIsArticleFormOpen(false);
+  };
+
+  const confirmDeleteArticle = async () => {
     if (selectedArticle) {
-      setArticles(articles.filter((a) => a.id !== selectedArticle.id));
-      toast.success(`Trending Topic deleted successfully`);
+      // Delete from Supabase
+      const { error } = await supabase
+        .from("trending_articles")
+        .delete()
+        .eq("id", selectedArticle.id);
+      if (!error) {
+        setArticles(articles.filter((a) => a.id !== selectedArticle.id));
+        toast.success(`Trending Topic deleted successfully`);
+      } else {
+        toast.error("Failed to delete article");
+      }
       setIsDeleteDialogOpen(false);
       setSelectedArticle(null);
     }
   };
 
-  const handleArticleSubmit = (data: Partial<ContentArticle>) => {
-    if (isEdit && selectedArticle) {
-      setArticles(
-        articles.map((article) =>
-          article.id === selectedArticle.id
-            ? {
-                ...article,
-                ...data,
-                updatedAt: new Date(),
-              }
-            : article
-        )
-      );
-      toast.success(`Trending Topic updated successfully`);
-    } else {
-      const newArticle: ContentArticle = {
-        id: `${articles.length + 1}`,
-        date: data.date as Date,
-        title: data.title as string,
-        brief: data.brief as string,
-        content: data.content as string,
-        category: data.category as ContentArticle["category"],
-        createdBy: "1", // Hardcoded for mock, would be current user ID
-        updatedAt: new Date(),
-        published: data.published as boolean,
-      };
-      setArticles([newArticle, ...articles]);
-      toast.success(`Trending Topic created successfully`);
-    }
-    setIsArticleFormOpen(false);
-  };
-
   const exportArticlesToCsv = () => {
-    const headers = ["Date", "Title", "Brief", "Category", "Status", "Last Updated"];
+    const headers = ["Date", "Title", "Brief", "Category", /*"Status",*/ "Last Updated"];
     const articlesData = articles.map(article => [
       format(article.date, "yyyy-MM-dd"),
       article.title,
       article.brief,
       article.category,
-      article.published ? "Published" : "Draft",
+      // article.published ? "Published" : "Draft",
       format(article.updatedAt, "yyyy-MM-dd")
     ]);
     
@@ -218,6 +297,25 @@ const TrendingTopics = () => {
         searchField="title"
         onRowClick={(article) => handleEditArticle(article)}
       />
+      <div className="flex justify-center mt-4">
+        <Button
+          variant="outline"
+          className="mx-1"
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Previous
+        </Button>
+        <span className="px-3 py-2 text-sm">Page {page} of {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}</span>
+        <Button
+          variant="outline"
+          className="mx-1"
+          disabled={page >= Math.ceil(totalCount / PAGE_SIZE)}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </Button>
+      </div>
       
       {/* Article form dialog */}
       <ArticleForm
