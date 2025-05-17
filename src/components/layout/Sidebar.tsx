@@ -85,7 +85,7 @@ const Sidebar = ({ isOpen, userRole }: SidebarProps) => {
       <div className="p-4 flex items-center justify-center h-16 border-b border-gray-200">
         {isOpen ? (
           <img 
-            src="/lovable-uploads/a36b95d7-3d5a-49cb-8cfb-136f1caf65eb.png" 
+            src="/logo.png" 
             alt="NEXTREND.AI Logo" 
             className="h-6 w-auto"
           />

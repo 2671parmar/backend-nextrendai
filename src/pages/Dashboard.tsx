@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/common/PageHeader";
 import MainLayout from "@/components/layout/MainLayout";
@@ -10,19 +9,40 @@ import {
 } from "@/data/mockData";
 import { BarChart, Users, Edit, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [stats] = useState({
-    users: mockUsers.length,
-    mbsArticles: mockMBSCommentary.length,
-    trendingArticles: mockTrendingTopics.length,
-    publishedContent: mockMBSCommentary.filter(article => article.published).length + 
-                      mockTrendingTopics.filter(article => article.published).length
+  const [stats, setStats] = useState({
+    users: 0,
+    mbsArticles: 0,
+    trendingArticles: 0,
+    generalTerms: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   const recentMBSArticle = mockMBSCommentary[0];
   const recentTrendingArticle = mockTrendingTopics[0];
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      const [{ count: users }, { count: mbsArticles }, { count: trendingArticles }, { count: generalTerms }] = await Promise.all([
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("mbs_articles").select("id", { count: "exact", head: true }),
+        supabase.from("trending_articles").select("id", { count: "exact", head: true }),
+        supabase.from("mortgage_terms").select("id", { count: "exact", head: true }),
+      ]);
+      setStats({
+        users: users ?? 0,
+        mbsArticles: mbsArticles ?? 0,
+        trendingArticles: trendingArticles ?? 0,
+        generalTerms: generalTerms ?? 0,
+      });
+      setLoading(false);
+    };
+    fetchStats();
+  }, []);
 
   return (
     <MainLayout>
@@ -38,7 +58,7 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-nextrend-green" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.users}</div>
+            <div className="text-2xl font-bold">{loading ? "-" : stats.users}</div>
             <p className="text-xs text-muted-foreground">
               Registered users and clients
             </p>
@@ -51,7 +71,7 @@ const Dashboard = () => {
             <FileText className="h-4 w-4 text-nextrend-green" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.mbsArticles}</div>
+            <div className="text-2xl font-bold">{loading ? "-" : stats.mbsArticles}</div>
             <p className="text-xs text-muted-foreground">
               Total MBS commentary articles
             </p>
@@ -64,7 +84,7 @@ const Dashboard = () => {
             <BarChart className="h-4 w-4 text-nextrend-green" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.trendingArticles}</div>
+            <div className="text-2xl font-bold">{loading ? "-" : stats.trendingArticles}</div>
             <p className="text-xs text-muted-foreground">
               Total trending topic articles
             </p>
@@ -73,13 +93,13 @@ const Dashboard = () => {
 
         <Card className="nextrend-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Published Content</CardTitle>
+            <CardTitle className="text-sm font-medium">General Terms</CardTitle>
             <Edit className="h-4 w-4 text-nextrend-green" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.publishedContent}</div>
+            <div className="text-2xl font-bold">{loading ? "-" : stats.generalTerms}</div>
             <p className="text-xs text-muted-foreground">
-              Total published articles
+              Total General Terms
             </p>
           </CardContent>
         </Card>

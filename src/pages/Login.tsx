@@ -67,7 +67,7 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <img 
-            src="/lovable-uploads/a36b95d7-3d5a-49cb-8cfb-136f1caf65eb.png" 
+            src="/logo.png" 
             alt="NEXTREND.AI Logo" 
             className="h-10"
           />

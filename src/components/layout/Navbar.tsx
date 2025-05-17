@@ -39,7 +39,7 @@ const Navbar = ({ toggleSidebar, onLogout, userRole, userEmail, userName }: Navb
             
             <div className="flex-shrink-0">
               <img 
-                src="/lovable-uploads/a36b95d7-3d5a-49cb-8cfb-136f1caf65eb.png" 
+                src="/logo.png" 
                 alt="NEXTREND.AI Logo" 
                 className="h-8 w-auto"
               />
