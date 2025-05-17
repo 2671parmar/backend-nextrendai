@@ -17,29 +17,34 @@ const UserManagement = () => {
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
+  const [search, setSearch] = useState("");
+
+  // Fetch users helper, used in useEffect and after update
+  const fetchUsers = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, phone, company, nmls, is_admin, updated_at")
+      .order("updated_at", { ascending: false });
+    if (!error && data) {
+      setUsers(
+        data.map((item: any) => ({
+          id: item.id,
+          name: item.full_name || "",
+          email: item.email || "",
+          phone: item.phone || "",
+          company: item.company || "",
+          nmls: item.nmls || "",
+          brandVoice: "DEFAULT",
+          role: item.is_admin ? "admin" : "team",
+          createdAt: item.updated_at ? new Date(item.updated_at) : new Date(),
+        }))
+      );
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      // Fetch profiles only (no join)
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, phone, company, nmls, is_admin, updated_at");
-      if (!error && data) {
-        setUsers(
-          data.map((item: any) => ({
-            id: item.id,
-            name: item.full_name || "",
-            email: item.email || "",
-            phone: item.phone || "",
-            company: item.company || "",
-            nmls: item.nmls || "",
-            brandVoice: "DEFAULT",
-            role: item.is_admin ? "admin" : "team",
-            createdAt: item.updated_at ? new Date(item.updated_at) : new Date(),
-          }))
-        );
-      }
-    };
     fetchUsers();
   }, []);
 
@@ -50,9 +55,13 @@ const UserManagement = () => {
   };
 
   const handleEditUser = (user: User) => {
-    setIsEdit(true);
-    setSelectedUser(user);
-    setIsUserFormOpen(true);
+    if (user.id && user.id.length === 36) {
+      setIsEdit(true);
+      setSelectedUser(user);
+      setIsUserFormOpen(true);
+    } else {
+      toast.error("Cannot edit users that are not saved in Supabase.");
+    }
   };
 
   const handleDeleteUser = (user: User) => {
@@ -69,20 +78,38 @@ const UserManagement = () => {
     }
   };
 
-  const handleUserSubmit = (data: Partial<User>) => {
+  const handleUserSubmit = async (data: Partial<User>) => {
     if (isEdit && selectedUser) {
-      setUsers(
-        users.map((user) =>
-          user.id === selectedUser.id
-            ? {
-                ...user,
-                ...data,
-                updatedAt: new Date(),
-              }
-            : user
-        )
-      );
+      console.log("Updating user in Supabase:", {
+        id: selectedUser.id,
+        full_name: data.name,
+        email: data.email,
+        phone: data.phone,
+        company: data.company,
+        nmls: data.nmls,
+        is_admin: data.role === "admin",
+        updated_at: new Date().toISOString(),
+      });
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: data.name,
+          email: data.email,
+          phone: data.phone,
+          company: data.company,
+          nmls: data.nmls,
+          is_admin: data.role === "admin",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedUser.id);
+      if (error) {
+        console.error("Supabase update error:", error);
+        toast.error(`Failed to update user: ${error.message}`);
+        return;
+      }
       toast.success(`User ${data.name} updated successfully`);
+      // Refetch users from Supabase
+      await fetchUsers();
     } else {
       const newUser: User = {
         id: `${users.length + 1}`,
@@ -131,6 +158,25 @@ const UserManagement = () => {
     toast.success("Users exported to CSV successfully");
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Filter users by search query (across all pages)
+  const filteredUsers = users.filter((user) => {
+    const q = search.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(q) ||
+      user.email.toLowerCase().includes(q) ||
+      user.phone.toLowerCase().includes(q) ||
+      user.company.toLowerCase().includes(q) ||
+      (user.nmls || "").toLowerCase().includes(q) ||
+      user.role.toLowerCase().includes(q)
+    );
+  });
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
+
   const columns = [
     {
       header: "Name",
@@ -160,25 +206,12 @@ const UserManagement = () => {
       sortable: true,
     },
     {
-      header: "Created At",
-      accessorKey: "createdAt" as keyof User,
-      cell: (user: User) => format(user.createdAt, "MMM d, yyyy"),
-      sortable: true,
-    },
-    {
-      header: "Brand Voice",
-      accessorKey: "brandVoice" as keyof User,
+      header: "User Type",
+      accessorKey: "role" as keyof User,
       cell: (user: User) => (
-        <div className="max-w-xs">
-          {user.brandVoice ? (
-            <p className="text-sm truncate" title={user.brandVoice}>
-              {user.brandVoice.length > 0 ? user.brandVoice.substring(0, 250) : "DEFAULT"}
-            </p>
-          ) : (
-            <span className="text-muted-foreground">DEFAULT</span>
-          )}
-        </div>
+        <span>{user.role === "admin" ? "Admin" : "Team"}</span>
       ),
+      sortable: true,
     },
     {
       header: "Actions",
@@ -229,10 +262,34 @@ const UserManagement = () => {
         </Button>
       </div>
       
+      {/* Pagination Controls */}
+      <div className="flex justify-end mb-2 space-x-2">
+        <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+          Previous
+        </Button>
+        <span className="self-center">Page {currentPage} of {totalPages}</span>
+        <Button variant="outline" size="sm" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+          Next
+        </Button>
+      </div>
+
+      {/* Search input above table */}
+      <div className="mb-4 max-w-xs">
+        <input
+          type="text"
+          className="w-full border rounded px-3 py-2"
+          placeholder="Search users..."
+          value={search}
+          onChange={e => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+        />
+      </div>
+
       <DataTable
         columns={columns}
-        data={users}
-        searchField="name"
+        data={paginatedUsers}
         onRowClick={(user) => handleEditUser(user)}
       />
       

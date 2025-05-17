@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,12 +34,15 @@ const userFormSchema = z.object({
   email: z.string().email("Invalid email format"),
   phone: z
     .string()
-    .min(10, "Phone must be at least 10 characters")
-    .regex(/^[0-9()-.\s]+$/, "Invalid phone format"),
-  company: z.string().min(2, "Company name is required"),
+    .optional()
+    .refine(
+      (val) => !val || (val.replace(/[^0-9]/g, '').length >= 10 && /^[0-9()\-.\s]+$/.test(val)),
+      { message: "Phone must be at least 10 digits and valid format" }
+    ),
+  company: z.string().optional(),
   nmls: z.string().optional(),
-  brandVoice: z.string().min(10, "Brand voice description is required"),
-  role: z.enum(["admin", "team"]),
+  brandVoice: z.string().optional(),
+  role: z.enum(["admin", "team"]).optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -74,6 +76,20 @@ export const UserForm = ({
       role: defaultValues?.role || "team",
     },
   });
+
+  // Reset form when defaultValues change (for edit)
+  useEffect(() => {
+    form.reset({
+      name: defaultValues?.name || "",
+      email: defaultValues?.email || "",
+      phone: defaultValues?.phone || "",
+      company: defaultValues?.company || "",
+      nmls: defaultValues?.nmls || "",
+      brandVoice: defaultValues?.brandVoice || "",
+      role: defaultValues?.role || "team",
+    });
+    // eslint-disable-next-line
+  }, [defaultValues]);
 
   const handleSubmit = async (data: UserFormValues) => {
     setIsSubmitting(true);
