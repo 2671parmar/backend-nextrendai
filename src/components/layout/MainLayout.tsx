@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Role } from "@/types";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/AuthContext";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,14 +14,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { signOut, user, profile } = useAuth();
   
   // In a real app, this would come from an auth context
   const [userRole] = useState<Role>("admin");
   
-  const handleLogout = () => {
-    // In a real app, this would call an auth service
-    toast.success("Successfully logged out");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Successfully logged out");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Failed to log out");
+    }
   };
 
   const toggleSidebar = () => {
@@ -36,7 +41,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         <Navbar 
           toggleSidebar={toggleSidebar} 
           onLogout={handleLogout}
-          userRole={userRole} 
+          userRole={userRole}
+          userName={profile?.full_name || profile?.username || user?.email}
         />
         
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-6">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -8,6 +7,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,6 +20,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -29,15 +31,35 @@ const Login = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // For demo purposes, any credentials will work
-      toast.success("Login successful");
-      navigate("/");
+    try {
+      setIsLoading(true);
+      await signIn(data.email, data.password);
+
+      // Fetch the authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      // Fetch the profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError || !profile) throw new Error("Profile not found");
+
+      if (profile.is_admin) {
+        toast.success("Login successful");
+        navigate("/");
+      } else {
+        // Not an admin, redirect to external site
+        window.location.href = "https://app.nextrend.ai";
+      }
+    } catch (error) {
+      toast.error("Invalid email, password, or not an admin");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

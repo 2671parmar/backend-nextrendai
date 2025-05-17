@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Bell, ChevronDown, Menu, User } from "lucide-react";
 import { Role } from "@/types";
@@ -10,15 +9,19 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface NavbarProps {
   toggleSidebar: () => void;
   onLogout: () => void;
   userRole: Role;
+  userEmail?: string;
+  userName?: string;
 }
 
-const Navbar = ({ toggleSidebar, onLogout, userRole }: NavbarProps) => {
+const Navbar = ({ toggleSidebar, onLogout, userRole, userEmail, userName }: NavbarProps) => {
   const [notifications] = useState(3); // Mock notification count
+  const navigate = useNavigate();
   
   return (
     <header className="bg-white border-b border-gray-200">
@@ -67,14 +70,14 @@ const Navbar = ({ toggleSidebar, onLogout, userRole }: NavbarProps) => {
                     <User className="h-5 w-5" />
                   </div>
                   <div className="flex flex-col items-start text-sm">
-                    <span className="font-medium">John Doe</span>
+                    <span className="font-medium">{userName || 'User'}</span>
                     <span className="text-xs text-gray-500 capitalize">{userRole}</span>
                   </div>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
