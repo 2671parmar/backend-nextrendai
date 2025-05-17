@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from "react-router-dom";
 import { FileText, Users, Edit, BarChart3, Settings } from "lucide-react";
 import { Role } from "@/types";
@@ -69,10 +68,20 @@ const Sidebar = ({ isOpen, userRole }: SidebarProps) => {
       icon: <FileText className="h-5 w-5" />,
     },
     {
-      title: "Settings",
-      path: "/settings",
-      icon: <Settings className="h-5 w-5" />,
+      title: "Mortgage Terms",
+      path: "/mortgage-terms",
+      icon: <FileText className="h-5 w-5" />,
     },
+    {
+      title: "Content Prompts",
+      path: "/content-prompts",
+      icon: <Edit className="h-5 w-5" />,
+    },
+    // {
+    //   title: "Settings",
+    //   path: "/settings",
+    //   icon: <Settings className="h-5 w-5" />,
+    // },
   ];
 
   return (

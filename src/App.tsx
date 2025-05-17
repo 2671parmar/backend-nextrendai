@@ -14,6 +14,8 @@ import TrendingTopics from "./pages/TrendingTopics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
+import MortgageTerms from "./pages/MortgageTerms";
+import ContentPrompts from "./pages/ContentPrompts";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,22 @@ const AppRoutes = () => (
       element={
         <ProtectedRoute>
           <Profile />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/mortgage-terms"
+      element={
+        <ProtectedRoute>
+          <MortgageTerms />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/content-prompts"
+      element={
+        <ProtectedRoute>
+          <ContentPrompts />
         </ProtectedRoute>
       }
     />
