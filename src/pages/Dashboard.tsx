@@ -20,6 +20,8 @@ const Dashboard = () => {
     generalTerms: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [latestMBS, setLatestMBS] = useState(null);
+  const [latestTrending, setLatestTrending] = useState(null);
 
   const recentMBSArticle = mockMBSCommentary[0];
   const recentTrendingArticle = mockTrendingTopics[0];
@@ -42,6 +44,29 @@ const Dashboard = () => {
       setLoading(false);
     };
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      // Latest MBS Commentary
+      const { data: mbs, error: mbsError } = await supabase
+        .from("mbs_articles")
+        .select("title, description, date")
+        .order("date", { ascending: false })
+        .limit(1)
+        .single();
+      setLatestMBS(mbsError ? null : mbs);
+
+      // Latest Trending Topic
+      const { data: trending, error: trendingError } = await supabase
+        .from("trending_articles")
+        .select("title, description, date")
+        .order("date", { ascending: false })
+        .limit(1)
+        .single();
+      setLatestTrending(trendingError ? null : trending);
+    };
+    fetchLatest();
   }, []);
 
   return (
@@ -111,13 +136,13 @@ const Dashboard = () => {
             <CardTitle>Latest MBS Commentary</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentMBSArticle ? (
+            {latestMBS ? (
               <div>
-                <h3 className="font-semibold text-lg">{recentMBSArticle.title}</h3>
+                <h3 className="font-semibold text-lg">{latestMBS.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {new Date(recentMBSArticle.date).toLocaleDateString()}
+                  {latestMBS.date ? new Date(latestMBS.date).toLocaleDateString() : ""}
                 </p>
-                <p className="mt-2 line-clamp-3">{recentMBSArticle.brief}</p>
+                <p className="mt-2 line-clamp-3">{latestMBS.description}</p>
                 <button 
                   onClick={() => navigate("/mbs-commentary")}
                   className="mt-4 text-nextrend-green hover:text-nextrend-green-dark flex items-center text-sm font-medium"
@@ -136,13 +161,13 @@ const Dashboard = () => {
             <CardTitle>Latest Trending Topic</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentTrendingArticle ? (
+            {latestTrending ? (
               <div>
-                <h3 className="font-semibold text-lg">{recentTrendingArticle.title}</h3>
+                <h3 className="font-semibold text-lg">{latestTrending.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {new Date(recentTrendingArticle.date).toLocaleDateString()}
+                  {latestTrending.date ? new Date(latestTrending.date).toLocaleDateString() : ""}
                 </p>
-                <p className="mt-2 line-clamp-3">{recentTrendingArticle.brief}</p>
+                <p className="mt-2 line-clamp-3">{latestTrending.description}</p>
                 <button 
                   onClick={() => navigate("/trending-topics")}
                   className="mt-4 text-nextrend-green hover:text-nextrend-green-dark flex items-center text-sm font-medium"
