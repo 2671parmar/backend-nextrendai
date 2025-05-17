@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Download, Plus, Trash2, PenLine } from "lucide-react";
@@ -8,15 +8,40 @@ import DataTable from "@/components/common/DataTable";
 import UserForm from "@/components/users/UserForm";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { mockUsers } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
 import { User } from "@/types";
 
 const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      // Fetch profiles only (no join)
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, phone, company, nmls, is_admin, updated_at");
+      if (!error && data) {
+        setUsers(
+          data.map((item: any) => ({
+            id: item.id,
+            name: item.full_name || "",
+            email: item.email || "",
+            phone: item.phone || "",
+            company: item.company || "",
+            nmls: item.nmls || "",
+            brandVoice: "DEFAULT",
+            role: item.is_admin ? "admin" : "team",
+            createdAt: item.updated_at ? new Date(item.updated_at) : new Date(),
+          }))
+        );
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const handleAddUser = () => {
     setIsEdit(false);

@@ -78,7 +78,7 @@ const Navbar = ({ toggleSidebar, onLogout, userRole, userEmail, userName }: Navb
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={() => navigate('/profile')}>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
               </DropdownMenuContent>
