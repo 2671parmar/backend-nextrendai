@@ -80,6 +80,7 @@ const UserManagement = () => {
 
   const handleUserSubmit = async (data: Partial<User>) => {
     if (isEdit && selectedUser) {
+      // Update existing user in profiles table
       console.log("Updating user in Supabase:", {
         id: selectedUser.id,
         full_name: data.name,
@@ -111,19 +112,22 @@ const UserManagement = () => {
       // Refetch users from Supabase
       await fetchUsers();
     } else {
-      const newUser: User = {
-        id: `${users.length + 1}`,
-        name: data.name!,
+      // Create new user in Supabase auth
+      const tempPassword = "TemporaryPassword123!";
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: data.email!,
-        phone: data.phone!,
-        company: data.company!,
-        nmls: data.nmls,
-        brandVoice: data.brandVoice!,
-        role: data.role!,
-        createdAt: new Date(),
-      };
-      setUsers([...users, newUser]);
-      toast.success(`User ${data.name} added successfully`);
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: data.name }
+      });
+      if (authError) {
+        console.error("Supabase auth error:", authError);
+        toast.error(`Failed to create user: ${authError.message}`);
+        return;
+      }
+      toast.success(`User ${data.name} added successfully. Temporary password: ${tempPassword}`);
+      // Refetch users from Supabase
+      await fetchUsers();
     }
     setIsUserFormOpen(false);
   };
