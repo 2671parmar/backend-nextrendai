@@ -118,7 +118,13 @@ const UserManagement = () => {
         email: data.email!,
         password: tempPassword,
         email_confirm: true,
-        user_metadata: { full_name: data.name }
+        user_metadata: {
+          full_name: data.name,
+          phone: data.phone,
+          company: data.company,
+          nmls: data.nmls,
+          is_admin: data.role === "admin"
+        }
       });
       if (authError) {
         console.error("Supabase auth error:", authError);
