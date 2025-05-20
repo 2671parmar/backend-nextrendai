@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronDown, Menu, User } from "lucide-react";
+import { ChevronDown, Menu, User } from "lucide-react";
 import { Role } from "@/types";
 import {
   DropdownMenu,
@@ -20,7 +20,6 @@ interface NavbarProps {
 }
 
 const Navbar = ({ toggleSidebar, onLogout, userRole, userEmail, userName }: NavbarProps) => {
-  const [notifications] = useState(3); // Mock notification count
   const navigate = useNavigate();
   
   return (
@@ -46,41 +45,23 @@ const Navbar = ({ toggleSidebar, onLogout, userRole, userEmail, userName }: Navb
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            {/* Notification bell */}
-            <div className="relative">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-                {notifications > 0 && (
-                  <span className="absolute top-0 right-0 flex h-5 w-5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nextrend-green opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-5 w-5 bg-nextrend-green text-white text-xs font-medium items-center justify-center">
-                      {notifications}
-                    </span>
-                  </span>
-                )}
-              </Button>
-            </div>
-            
-            {/* User dropdown */}
+          <div className="flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 px-2">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-nextrend-green text-white">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div className="flex flex-col items-start text-sm">
-                    <span className="font-medium">{userName || 'User'}</span>
-                    <span className="text-xs text-gray-500 capitalize">{userRole}</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4" />
+                <Button variant="ghost" className="relative">
+                  <User className="h-5 w-5" />
+                  <span className="ml-2">{userName || userEmail}</span>
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => navigate('/profile')}>Profile</DropdownMenuItem>
-                {/* <DropdownMenuItem>Settings</DropdownMenuItem> */}
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  Profile
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={onLogout}>
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

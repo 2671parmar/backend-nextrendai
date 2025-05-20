@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Download, Plus, Trash2, PenLine } from "lucide-react";
+import { Download, Plus, Trash2, PenLine, Mail } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
@@ -20,6 +20,8 @@ const UserManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
   const [search, setSearch] = useState("");
+  const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
 
   // Fetch users helper, used in useEffect and after update
   const fetchUsers = async () => {
@@ -78,6 +80,71 @@ const UserManagement = () => {
     }
   };
 
+  const handleSendInvitation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // First create the user in auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: inviteEmail,
+        email_confirm: false,
+        user_metadata: {
+          full_name: "",
+          phone: "",
+          company: "",
+          nmls: "",
+          is_admin: false
+        }
+      });
+
+      if (authError) {
+        console.error("Supabase auth error:", authError);
+        toast.error(`Failed to create user: ${authError.message}`);
+        return;
+      }
+
+      // Then update or create the profile record
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .upsert({
+            id: authData.user.id,
+            email: inviteEmail,
+            full_name: "",
+            phone: "",
+            company: "",
+            nmls: "",
+            is_admin: false,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
+
+        if (profileError) {
+          console.error("Supabase profile error:", profileError);
+          toast.error(`Failed to create profile: ${profileError.message}`);
+          return;
+        }
+
+        // Send invitation email
+        const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(inviteEmail);
+        if (inviteError) {
+          console.error("Supabase invitation error:", inviteError);
+          toast.error(`Failed to send invitation email: ${inviteError.message}`);
+          return;
+        }
+      }
+
+      toast.success(`Invitation sent successfully to ${inviteEmail}`);
+      setIsInviteFormOpen(false);
+      setInviteEmail("");
+      // Refetch users to show the new invited user
+      await fetchUsers();
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      toast.error("Failed to send invitation");
+    }
+  };
+
   const handleUserSubmit = async (data: Partial<User>) => {
     if (isEdit && selectedUser) {
       // Update existing user in profiles table
@@ -113,11 +180,10 @@ const UserManagement = () => {
       await fetchUsers();
     } else {
       // Create new user in Supabase auth
-      const tempPassword = "TemporaryPassword123!";
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: data.email!,
-        password: tempPassword,
-        email_confirm: true,
+        password: "TemporaryPassword123!", // This will be changed by the user
+        email_confirm: false, // Set to false so they need to confirm their email
         user_metadata: {
           full_name: data.name,
           phone: data.phone,
@@ -131,7 +197,7 @@ const UserManagement = () => {
         toast.error(`Failed to create user: ${authError.message}`);
         return;
       }
-      toast.success(`User ${data.name} added successfully. Temporary password: ${tempPassword}`);
+      toast.success(`User ${data.name} added successfully. An invitation email will be sent.`);
       // Refetch users from Supabase
       await fetchUsers();
     }
@@ -235,6 +301,7 @@ const UserManagement = () => {
               e.stopPropagation();
               handleEditUser(user);
             }}
+            title="Edit user"
           >
             <PenLine className="h-4 w-4" />
           </Button>
@@ -245,6 +312,7 @@ const UserManagement = () => {
               e.stopPropagation();
               handleDeleteUser(user);
             }}
+            title="Delete user"
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -262,6 +330,11 @@ const UserManagement = () => {
           label: "Add User",
           onClick: handleAddUser,
           icon: <Plus className="h-4 w-4" />,
+        }}
+        secondaryAction={{
+          label: "Send Invitation",
+          onClick: () => setIsInviteFormOpen(true),
+          icon: <Mail className="h-4 w-4" />,
         }}
       />
       
@@ -323,6 +396,40 @@ const UserManagement = () => {
         onCancel={() => setIsDeleteDialogOpen(false)}
         variant="destructive"
       />
+
+      {/* Invite User Dialog */}
+      {isInviteFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg">
+            <h2 className="text-xl font-bold mb-2">Send User Invitation</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter the email address of the user you want to invite. They will receive an email to set up their account.
+            </p>
+            <form onSubmit={handleSendInvitation} className="space-y-4">
+              <div>
+                <label className="block mb-1 font-medium">Email Address</label>
+                <input 
+                  type="email" 
+                  className="w-full border rounded px-3 py-2" 
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="Enter email address"
+                  required 
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsInviteFormOpen(false);
+                  setInviteEmail("");
+                }}>
+                  Cancel
+                </Button>
+                <Button type="submit">Send Invitation</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 };
