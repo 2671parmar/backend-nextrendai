@@ -72,12 +72,38 @@ const UserManagement = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (selectedUser) {
-      setUsers(users.filter((u) => u.id !== selectedUser.id));
-      toast.success(`User ${selectedUser.name} deleted successfully`);
-      setIsDeleteDialogOpen(false);
-      setSelectedUser(null);
+      try {
+        // Delete from auth.users
+        const { error: authError } = await supabase.auth.admin.deleteUser(selectedUser.id);
+        if (authError) {
+          console.error("Supabase auth delete error:", authError);
+          toast.error(`Failed to delete user: ${authError.message}`);
+          return;
+        }
+
+        // Delete from profiles table
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", selectedUser.id);
+
+        if (profileError) {
+          console.error("Supabase profile delete error:", profileError);
+          toast.error(`Failed to delete user profile: ${profileError.message}`);
+          return;
+        }
+
+        // Update local state
+        setUsers(users.filter((u) => u.id !== selectedUser.id));
+        toast.success(`User ${selectedUser.name} deleted successfully`);
+        setIsDeleteDialogOpen(false);
+        setSelectedUser(null);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        toast.error("Failed to delete user");
+      }
     }
   };
 
@@ -255,6 +281,21 @@ const UserManagement = () => {
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
+  const handleResetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        console.error("Supabase reset password error:", error);
+        toast.error(`Failed to send reset password email: ${error.message}`);
+        return;
+      }
+      toast.success(`Reset password email sent to ${email}`);
+    } catch (error) {
+      console.error("Error sending reset password email:", error);
+      toast.error("Failed to send reset password email");
+    }
+  };
+
   const columns = [
     {
       header: "Name",
@@ -312,6 +353,17 @@ const UserManagement = () => {
             size="icon"
             onClick={(e) => {
               e.stopPropagation();
+              handleResetPassword(user.email);
+            }}
+            title="Send reset password email"
+          >
+            <Mail className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
               handleDeleteUser(user);
             }}
             title="Delete user"
@@ -332,11 +384,6 @@ const UserManagement = () => {
           label: "Add User",
           onClick: handleAddUser,
           icon: <Plus className="h-4 w-4" />,
-        }}
-        secondaryAction={{
-          label: "Send Invitation",
-          onClick: () => setIsInviteFormOpen(true),
-          icon: <Mail className="h-4 w-4" />,
         }}
       />
       
@@ -398,53 +445,6 @@ const UserManagement = () => {
         onCancel={() => setIsDeleteDialogOpen(false)}
         variant="destructive"
       />
-
-      {/* Invite User Dialog */}
-      {isInviteFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-2">Send User Invitation</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter the email address of the user you want to invite. They will receive an email to set up their account.
-            </p>
-            <form onSubmit={handleSendInvitation} className="space-y-4">
-              <div>
-                <label className="block mb-1 font-medium">Email Address</label>
-                <input 
-                  type="email" 
-                  className="w-full border rounded px-3 py-2" 
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  placeholder="Enter email address"
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block mb-1 font-medium">User Type</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={inviteUserType}
-                  onChange={e => setInviteUserType(e.target.value as "admin" | "team")}
-                  required
-                >
-                  <option value="team">Team Member</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => {
-                  setIsInviteFormOpen(false);
-                  setInviteEmail("");
-                  setInviteUserType("team");
-                }}>
-                  Cancel
-                </Button>
-                <Button type="submit">Send Invitation</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </MainLayout>
   );
 };
