@@ -20,23 +20,29 @@ const MortgageTerms = () => {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [form, setForm] = useState({ term: "", definition: "", mortgage_relevance: "" });
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchTerms = async () => {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("mortgage_terms")
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .order("created_at", { ascending: false });
+
+      if (searchQuery) {
+        query = query.ilike("term", `%${searchQuery}%`);
+      }
+
+      const { data, error, count } = await query.range(from, to);
       if (!error && data) {
         setTerms(data);
         setTotalCount(count || 0);
       }
     };
     fetchTerms();
-  }, [page]);
+  }, [page, searchQuery]);
 
   const handleAdd = () => {
     setIsEdit(false);
@@ -111,6 +117,44 @@ const MortgageTerms = () => {
     setIsFormOpen(false);
   };
 
+  const exportTermsToCsv = async () => {
+    // Fetch all terms for export
+    const { data: allTerms, error } = await supabase
+      .from("mortgage_terms")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to export terms");
+      return;
+    }
+
+    const headers = ["Term", "Definition", "Mortgage Relevance", "Created At", "Updated At"];
+    const termsData = allTerms.map(term => [
+      term.term,
+      term.definition,
+      term.mortgage_relevance,
+      format(new Date(term.created_at), "yyyy-MM-dd"),
+      format(new Date(term.updated_at), "yyyy-MM-dd")
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...termsData.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `nextrend_mortgage_terms_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Mortgage Terms exported to CSV successfully");
+  };
+
   const columns = [
     { header: "Term", accessorKey: "term", sortable: true },
     { header: "Definition", accessorKey: "definition", sortable: false },
@@ -140,7 +184,19 @@ const MortgageTerms = () => {
         description="Create and manage mortgage terms"
         action={{ label: "Add Term", onClick: handleAdd, icon: <Plus className="h-4 w-4" /> }}
       />
-      <DataTable columns={columns} data={terms} searchField="term" onRowClick={handleEdit} />
+      <div className="flex justify-end mb-4">
+        <Button variant="outline" onClick={exportTermsToCsv}>
+          <Download className="mr-2 h-4 w-4" />
+          Export to CSV
+        </Button>
+      </div>
+      <DataTable 
+        columns={columns} 
+        data={terms} 
+        searchField="term" 
+        onRowClick={handleEdit}
+        onSearch={setSearchQuery}
+      />
       <div className="flex justify-center mt-4">
         <Button variant="outline" className="mx-1" disabled={page === 1} onClick={() => setPage(page - 1)}>
           Previous

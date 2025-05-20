@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -17,6 +16,7 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   searchField?: keyof T;
   onRowClick?: (item: T) => void;
+  onSearch?: (query: string) => void;
 }
 
 export function DataTable<T>({
@@ -24,6 +24,7 @@ export function DataTable<T>({
   columns,
   searchField,
   onRowClick,
+  onSearch,
 }: DataTableProps<T>) {
   const [sortField, setSortField] = useState<keyof T | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -38,6 +39,11 @@ export function DataTable<T>({
       setSortField(column.accessorKey);
       setSortDirection('asc');
     }
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    onSearch?.(value);
   };
 
   const filteredData = searchQuery && searchField
@@ -74,7 +80,7 @@ export function DataTable<T>({
             placeholder="Search..."
             className="pl-10"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
       )}

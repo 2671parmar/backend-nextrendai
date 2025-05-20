@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Plus, Trash2, PenLine } from "lucide-react";
+import { Plus, Trash2, PenLine, Download } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable from "@/components/common/DataTable";
@@ -20,23 +20,29 @@ const ContentPrompts = () => {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [form, setForm] = useState({ headline: "", hook: "", is_active: true });
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchPrompts = async () => {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("content_prompts")
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .order("created_at", { ascending: false });
+
+      if (searchQuery) {
+        query = query.ilike("headline", `%${searchQuery}%`);
+      }
+
+      const { data, error, count } = await query.range(from, to);
       if (!error && data) {
         setPrompts(data);
         setTotalCount(count || 0);
       }
     };
     fetchPrompts();
-  }, [page]);
+  }, [page, searchQuery]);
 
   const handleAdd = () => {
     setIsEdit(false);
@@ -111,6 +117,44 @@ const ContentPrompts = () => {
     setIsFormOpen(false);
   };
 
+  const exportPromptsToCsv = async () => {
+    // Fetch all prompts for export
+    const { data: allPrompts, error } = await supabase
+      .from("content_prompts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to export prompts");
+      return;
+    }
+
+    const headers = ["Headline", "Hook", "Active", "Created At", "Updated At"];
+    const promptsData = allPrompts.map(prompt => [
+      prompt.headline,
+      prompt.hook,
+      prompt.is_active ? "Yes" : "No",
+      format(new Date(prompt.created_at), "yyyy-MM-dd"),
+      format(new Date(prompt.updated_at), "yyyy-MM-dd")
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...promptsData.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `nextrend_content_prompts_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Content Prompts exported to CSV successfully");
+  };
+
   const columns = [
     { header: "Headline", accessorKey: "headline", sortable: true },
     { header: "Hook", accessorKey: "hook", sortable: false },
@@ -140,7 +184,13 @@ const ContentPrompts = () => {
         description="Create and manage content prompts"
         action={{ label: "Add Prompt", onClick: handleAdd, icon: <Plus className="h-4 w-4" /> }}
       />
-      <DataTable columns={columns} data={prompts} searchField="headline" onRowClick={handleEdit} />
+      <div className="flex justify-end mb-4">
+        <Button variant="outline" onClick={exportPromptsToCsv}>
+          <Download className="mr-2 h-4 w-4" />
+          Export to CSV
+        </Button>
+      </div>
+      <DataTable columns={columns} data={prompts} searchField="headline" onRowClick={handleEdit} onSearch={setSearchQuery} />
       <div className="flex justify-center mt-4">
         <Button variant="outline" className="mx-1" disabled={page === 1} onClick={() => setPage(page - 1)}>
           Previous

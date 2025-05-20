@@ -30,16 +30,22 @@ const MBSCommentary = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchArticles = async () => {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("mbs_articles")
         .select("id, title, description, content, category, date, last_scraped, status", { count: "exact" })
-        .order("date", { ascending: false })
-        .range(from, to);
+        .order("date", { ascending: false });
+
+      if (searchQuery) {
+        query = query.ilike("title", `%${searchQuery}%`);
+      }
+
+      const { data, error, count } = await query.range(from, to);
       if (!error && data) {
         setArticles(
           data.map((item) => ({
@@ -58,7 +64,7 @@ const MBSCommentary = () => {
       }
     };
     fetchArticles();
-  }, [page]);
+  }, [page, searchQuery]);
 
   const handleAddArticle = () => {
     setIsEdit(false);
@@ -171,15 +177,26 @@ const MBSCommentary = () => {
     }
   };
 
-  const exportArticlesToCsv = () => {
-    const headers = ["Date", "Title", "Brief", "Category", /*"Status",*/ "Last Updated"];
-    const articlesData = articles.map(article => [
-      format(article.date, "yyyy-MM-dd"),
+  const exportArticlesToCsv = async () => {
+    // Fetch all articles for export
+    const { data: allArticles, error } = await supabase
+      .from("mbs_articles")
+      .select("id, title, description, content, category, date, last_scraped, status")
+      .order("date", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to export articles");
+      return;
+    }
+
+    const headers = ["Date", "Title", "Brief", "Category", "Status", "Last Updated"];
+    const articlesData = allArticles.map(article => [
+      format(new Date(article.date), "yyyy-MM-dd"),
       article.title,
-      article.brief,
+      article.description,
       article.category,
-      // article.published ? "Published" : "Draft",
-      format(article.updatedAt, "yyyy-MM-dd")
+      article.status || 'draft',
+      format(new Date(article.last_scraped), "yyyy-MM-dd")
     ]);
     
     const csvContent = [
@@ -297,6 +314,7 @@ const MBSCommentary = () => {
         data={articles}
         searchField="title"
         onRowClick={(article) => handleEditArticle(article)}
+        onSearch={setSearchQuery}
       />
       <div className="flex justify-center mt-4">
         <Button
