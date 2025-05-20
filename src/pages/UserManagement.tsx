@@ -344,7 +344,7 @@ const UserManagement = () => {
               e.stopPropagation();
               handleEditUser(user);
             }}
-            title="Edit user"
+            title="Edit User"
           >
             <PenLine className="h-4 w-4" />
           </Button>
@@ -355,7 +355,7 @@ const UserManagement = () => {
               e.stopPropagation();
               handleResetPassword(user.email);
             }}
-            title="Send reset password email"
+            title="Password Recovery"
           >
             <Mail className="h-4 w-4" />
           </Button>
@@ -366,7 +366,7 @@ const UserManagement = () => {
               e.stopPropagation();
               handleDeleteUser(user);
             }}
-            title="Delete user"
+            title="Delete User"
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -384,6 +384,11 @@ const UserManagement = () => {
           label: "Add User",
           onClick: handleAddUser,
           icon: <Plus className="h-4 w-4" />,
+        }}
+        secondaryAction={{
+          label: "Send Invitation",
+          onClick: () => setIsInviteFormOpen(true),
+          icon: <Mail className="h-4 w-4" />,
         }}
       />
       
@@ -445,6 +450,53 @@ const UserManagement = () => {
         onCancel={() => setIsDeleteDialogOpen(false)}
         variant="destructive"
       />
+
+      {/* Invite User Dialog */}
+      {isInviteFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg">
+            <h2 className="text-xl font-bold mb-2">Send User Invitation</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Enter the email address of the user you want to invite. They will receive an email to set up their account.
+            </p>
+            <form onSubmit={handleSendInvitation} className="space-y-4">
+              <div>
+                <label className="block mb-1 font-medium">Email Address</label>
+                <input 
+                  type="email" 
+                  className="w-full border rounded px-3 py-2" 
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="Enter email address"
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">User Type</label>
+                <select
+                  className="w-full border rounded px-3 py-2"
+                  value={inviteUserType}
+                  onChange={e => setInviteUserType(e.target.value as "admin" | "team")}
+                  required
+                >
+                  <option value="team">Team Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsInviteFormOpen(false);
+                  setInviteEmail("");
+                  setInviteUserType("team");
+                }}>
+                  Cancel
+                </Button>
+                <Button type="submit">Send Invitation</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 };
