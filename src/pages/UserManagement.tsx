@@ -22,6 +22,7 @@ const UserManagement = () => {
   const [search, setSearch] = useState("");
   const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteUserType, setInviteUserType] = useState<"admin" | "team">("team");
 
   // Fetch users helper, used in useEffect and after update
   const fetchUsers = async () => {
@@ -92,7 +93,7 @@ const UserManagement = () => {
           phone: "",
           company: "",
           nmls: "",
-          is_admin: false
+          is_admin: inviteUserType === "admin"
         }
       });
 
@@ -113,7 +114,7 @@ const UserManagement = () => {
             phone: "",
             company: "",
             nmls: "",
-            is_admin: false,
+            is_admin: inviteUserType === "admin",
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'id'
@@ -137,6 +138,7 @@ const UserManagement = () => {
       toast.success(`Invitation sent successfully to ${inviteEmail}`);
       setIsInviteFormOpen(false);
       setInviteEmail("");
+      setInviteUserType("team");
       // Refetch users to show the new invited user
       await fetchUsers();
     } catch (error) {
@@ -417,10 +419,23 @@ const UserManagement = () => {
                   required 
                 />
               </div>
+              <div>
+                <label className="block mb-1 font-medium">User Type</label>
+                <select
+                  className="w-full border rounded px-3 py-2"
+                  value={inviteUserType}
+                  onChange={e => setInviteUserType(e.target.value as "admin" | "team")}
+                  required
+                >
+                  <option value="team">Team Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => {
                   setIsInviteFormOpen(false);
                   setInviteEmail("");
+                  setInviteUserType("team");
                 }}>
                   Cancel
                 </Button>
