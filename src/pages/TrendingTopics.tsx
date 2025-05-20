@@ -37,7 +37,7 @@ const TrendingTopics = () => {
       const to = from + PAGE_SIZE - 1;
       const { data, error, count } = await supabase
         .from("trending_articles")
-        .select("id, title, description, content, category, date, last_scraped, is_generating", { count: "exact" })
+        .select("id, title, description, content, category, date, last_scraped, status", { count: "exact" })
         .order("date", { ascending: false })
         .range(from, to);
       if (!error && data) {
@@ -49,9 +49,9 @@ const TrendingTopics = () => {
             content: item.content,
             category: item.category,
             date: item.date ? new Date(item.date) : new Date(),
-            createdBy: "", // Not available in table
+            createdBy: "",
             updatedAt: item.last_scraped ? new Date(item.last_scraped) : new Date(),
-            published: !item.is_generating, // Example logic
+            status: item.status || 'draft',
           }))
         );
         setTotalCount(count || 0);
@@ -93,7 +93,7 @@ const TrendingTopics = () => {
           content: data.content,
           category: data.category,
           date: data.date,
-          is_generating: !data.published,
+          status: data.status || 'draft',
           last_scraped: new Date().toISOString(),
         })
         .eq("id", selectedArticle.id);
@@ -106,6 +106,7 @@ const TrendingTopics = () => {
                   ...data,
                   brief: data.brief,
                   updatedAt: new Date(),
+                  status: data.status || 'draft',
                 }
               : article
           )
@@ -124,7 +125,7 @@ const TrendingTopics = () => {
           content: data.content,
           category: data.category,
           date: data.date,
-          is_generating: !data.published,
+          status: data.status || 'draft',
           last_scraped: new Date().toISOString(),
         })
         .select()
@@ -140,7 +141,7 @@ const TrendingTopics = () => {
             date: inserted.date ? new Date(inserted.date) : new Date(),
             createdBy: "",
             updatedAt: inserted.last_scraped ? new Date(inserted.last_scraped) : new Date(),
-            published: !inserted.is_generating,
+            status: inserted.status || 'draft',
           },
           ...articles,
         ]);
@@ -171,13 +172,13 @@ const TrendingTopics = () => {
   };
 
   const exportArticlesToCsv = () => {
-    const headers = ["Date", "Title", "Brief", "Category", /*"Status",*/ "Last Updated"];
+    const headers = ["Date", "Title", "Brief", "Category", "Status", "Last Updated"];
     const articlesData = articles.map(article => [
       format(article.date, "yyyy-MM-dd"),
       article.title,
       article.brief,
       article.category,
-      // article.published ? "Published" : "Draft",
+      article.status,
       format(article.updatedAt, "yyyy-MM-dd")
     ]);
     
@@ -217,9 +218,9 @@ const TrendingTopics = () => {
     },
     {
       header: "Status",
-      accessorKey: "published" as keyof ContentArticle,
+      accessorKey: "status" as keyof ContentArticle,
       cell: (article: ContentArticle) => (
-        <StatusBadge status={article.published} />
+        <StatusBadge status={article.status} />
       ),
       sortable: true,
     },
@@ -343,7 +344,7 @@ const TrendingTopics = () => {
                     {format(selectedArticle.date, "MMMM d, yyyy")} · {selectedArticle.category}
                   </p>
                 </div>
-                <StatusBadge status={selectedArticle.published} />
+                <StatusBadge status={selectedArticle.status} />
               </div>
               
               <div className="bg-muted p-4 rounded-md italic">

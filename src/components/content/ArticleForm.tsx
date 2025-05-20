@@ -38,6 +38,8 @@ import { CalendarIcon, Eye } from "lucide-react";
 import { ContentArticle, ContentCategory } from "@/types";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const trendingCategories = [
   "Trending",
@@ -64,6 +66,7 @@ const articleFormSchema = z.object({
   category: z.string(),
   date: z.date(),
   published: z.boolean().default(false),
+  status: z.string().default("draft"),
 });
 
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
@@ -99,6 +102,7 @@ export const ArticleForm = ({
       published: typeof defaultValues?.published === "boolean"
         ? defaultValues.published
         : (defaultValues?.is_generating === false),
+      status: defaultValues?.status || "draft",
     },
   });
 
@@ -112,6 +116,7 @@ export const ArticleForm = ({
       published: typeof defaultValues?.published === "boolean"
         ? defaultValues.published
         : (defaultValues?.is_generating === false),
+      status: defaultValues?.status || "draft",
     });
     // eslint-disable-next-line
   }, [defaultValues, contentType]);
@@ -223,25 +228,18 @@ export const ArticleForm = ({
                 )}
               />
 
-              {/*
-              <FormField
-                control={form.control}
-                name="published"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-end space-x-2 p-4 pt-0">
-                    <FormControl>
-                      <input
-                        type="checkbox"
-                        className="nextrend-checkbox"
-                        checked={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="mb-0">Publish immediately</FormLabel>
-                  </FormItem>
-                )}
-              />
-              */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="status"
+                  checked={form.watch("status") === "published"}
+                  onCheckedChange={(checked) => {
+                    form.setValue("status", checked ? "published" : "draft");
+                  }}
+                />
+                <Label htmlFor="status">
+                  {form.watch("status") === "published" ? "Published" : "Draft"}
+                </Label>
+              </div>
             </div>
 
             <FormField

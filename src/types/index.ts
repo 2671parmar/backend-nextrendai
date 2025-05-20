@@ -32,12 +32,12 @@ export type ContentCategory = "Market Trends" | "Finance" | "Real Estate" | "Tec
 
 export interface ContentArticle {
   id: string;
-  date: Date;
   title: string;
   brief: string;
   content: string;
-  category: ContentCategory;
+  category: string;
+  date: Date;
   createdBy: string;
   updatedAt: Date;
-  published: boolean;
+  status: 'draft' | 'published';
 }

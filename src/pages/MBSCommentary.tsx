@@ -37,7 +37,7 @@ const MBSCommentary = () => {
       const to = from + PAGE_SIZE - 1;
       const { data, error, count } = await supabase
         .from("mbs_articles")
-        .select("id, title, description, content, category, date, last_scraped, is_generating", { count: "exact" })
+        .select("id, title, description, content, category, date, last_scraped, status", { count: "exact" })
         .order("date", { ascending: false })
         .range(from, to);
       if (!error && data) {
@@ -49,9 +49,9 @@ const MBSCommentary = () => {
             content: item.content,
             category: item.category,
             date: item.date ? new Date(item.date) : new Date(),
-            createdBy: "", // Not available in table
+            createdBy: "",
             updatedAt: item.last_scraped ? new Date(item.last_scraped) : new Date(),
-            published: !item.is_generating, // Example logic
+            status: item.status || 'draft',
           }))
         );
         setTotalCount(count || 0);
@@ -93,7 +93,7 @@ const MBSCommentary = () => {
           content: data.content,
           category: data.category,
           date: data.date,
-          is_generating: !data.published,
+          status: data.status || 'draft',
           last_scraped: new Date().toISOString(),
         })
         .eq("id", selectedArticle.id);
@@ -106,6 +106,7 @@ const MBSCommentary = () => {
                   ...data,
                   brief: data.brief,
                   updatedAt: new Date(),
+                  status: data.status || 'draft',
                 }
               : article
           )
@@ -124,7 +125,7 @@ const MBSCommentary = () => {
           content: data.content,
           category: data.category,
           date: data.date,
-          is_generating: !data.published,
+          status: data.status || 'draft',
           last_scraped: new Date().toISOString(),
         })
         .select()
@@ -140,7 +141,7 @@ const MBSCommentary = () => {
             date: inserted.date ? new Date(inserted.date) : new Date(),
             createdBy: "",
             updatedAt: inserted.last_scraped ? new Date(inserted.last_scraped) : new Date(),
-            published: !inserted.is_generating,
+            status: inserted.status || 'draft',
           },
           ...articles,
         ]);
@@ -217,9 +218,9 @@ const MBSCommentary = () => {
     },
     {
       header: "Status",
-      accessorKey: "published" as keyof ContentArticle,
+      accessorKey: "status" as keyof ContentArticle,
       cell: (article: ContentArticle) => (
-        <StatusBadge status={article.published} />
+        <StatusBadge status={article.status} />
       ),
       sortable: true,
     },
@@ -343,7 +344,7 @@ const MBSCommentary = () => {
                     {format(selectedArticle.date, "MMMM d, yyyy")} · {selectedArticle.category}
                   </p>
                 </div>
-                <StatusBadge status={selectedArticle.published} />
+                <StatusBadge status={selectedArticle.status} />
               </div>
               
               <div className="bg-muted p-4 rounded-md italic">
