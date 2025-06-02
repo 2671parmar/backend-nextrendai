@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import MortgageTerms from "./pages/MortgageTerms";
 import ContentPrompts from "./pages/ContentPrompts";
+import ResetPassword from "@/pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,7 @@ const AppRoutes = () => (
         </ProtectedRoute>
       }
     />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
@@ -116,13 +118,13 @@ const AppRoutes = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
           <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      </BrowserRouter>
+    </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
