@@ -10,6 +10,7 @@ export interface User {
   brandVoice: string;
   role: Role;
   createdAt: Date;
+  password?: string;
 }
 
 export interface MasterPrompt {

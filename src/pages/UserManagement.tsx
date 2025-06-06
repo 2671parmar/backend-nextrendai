@@ -20,9 +20,9 @@ const UserManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
   const [search, setSearch] = useState("");
-  const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteUserType, setInviteUserType] = useState<"admin" | "team">("team");
+  const [inviteRole, setInviteRole] = useState<"admin" | "team">("team");
 
   // Fetch users helper, used in useEffect and after update
   const fetchUsers = async () => {
@@ -142,17 +142,18 @@ const UserManagement = () => {
       await fetchUsers();
     } else {
       try {
-        // Create the user in auth
+        // Create the user in auth with the provided temporary password
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: data.email!,
-          email_confirm: false,
+          email_confirm: true,
           user_metadata: {
             full_name: data.name,
             phone: data.phone,
             company: data.company,
             nmls: data.nmls,
             is_admin: data.role === "admin"
-          }
+          },
+          password: data.password // Use the password from the form
         });
 
         if (authError) {
@@ -181,25 +182,30 @@ const UserManagement = () => {
             toast.error(`Failed to create profile: ${profileError.message}`);
             return;
           }
-
-          // Send invitation email with redirect to /reset-password
-          const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(data.email!, {
-            redirectTo: 'https://app.nextrend.ai/reset-password'
-          });
-
-          if (inviteError) {
-            toast.error(`Failed to send invitation email: ${inviteError.message}`);
-            return;
-          }
         }
 
-        toast.success(`User ${data.name} added successfully. An invitation email has been sent.`);
+        toast.success(`User ${data.name} added successfully. They can log in with the temporary password: ${data.password}`);
         await fetchUsers();
       } catch (error) {
         toast.error("Failed to create user");
       }
     }
     setIsUserFormOpen(false);
+  };
+
+  const handleSendInvite = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
+        redirectTo: 'https://app.nextrend.ai/reset-password'
+      });
+      if (error) {
+        toast.error(`Failed to send invitation email: ${error.message}`);
+        return;
+      }
+      toast.success(`Invitation email sent to ${email}`);
+    } catch (error) {
+      toast.error("Failed to send invitation email");
+    }
   };
 
   const exportUsersToCsv = () => {
@@ -350,12 +356,26 @@ const UserManagement = () => {
       <PageHeader
         title="User Management"
         description="Manage user profiles for NEXTREND.AI team and clients"
-        action={{
-          label: "Add User",
-          onClick: handleAddUser,
-          icon: <Plus className="h-4 w-4" />,
-        }}
+        action={null}
       />
+      
+      {/* Align Add User and Send Invite buttons in one row */}
+      <div className="flex justify-end items-center mb-4 gap-2">
+        <Button
+          variant="default"
+          onClick={handleAddUser}
+          className="flex items-center bg-green-500 hover:bg-green-600 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add User
+        </Button>
+        <Button
+          variant="default"
+          onClick={() => setIsInviteDialogOpen(true)}
+          className="flex items-center bg-green-500 hover:bg-green-600 text-white"
+        >
+          <Mail className="h-4 w-4 mr-2" /> Send Invite
+        </Button>
+      </div>
       
       <div className="flex justify-end mb-4">
         <Button variant="outline" onClick={exportUsersToCsv}>
@@ -415,6 +435,42 @@ const UserManagement = () => {
         onCancel={() => setIsDeleteDialogOpen(false)}
         variant="destructive"
       />
+
+      {/* Invite Dialog */}
+      {isInviteDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Send User Invitation</h2>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await handleSendInvite(inviteEmail);
+                setIsInviteDialogOpen(false);
+                setInviteEmail("");
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block mb-1 font-medium">Email Address</label>
+                <input
+                  type="email"
+                  className="w-full border rounded px-3 py-2"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="Enter email address"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Send Invite</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 };

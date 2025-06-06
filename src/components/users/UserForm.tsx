@@ -43,6 +43,7 @@ const userFormSchema = z.object({
   nmls: z.string().optional(),
   brandVoice: z.string().optional(),
   role: z.enum(["admin", "team"]).optional(),
+  password: z.string().optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -74,6 +75,7 @@ export const UserForm = ({
       nmls: defaultValues?.nmls || "",
       brandVoice: defaultValues?.brandVoice || "",
       role: defaultValues?.role || "team",
+      password: defaultValues?.password || "",
     },
   });
 
@@ -87,6 +89,7 @@ export const UserForm = ({
       nmls: defaultValues?.nmls || "",
       brandVoice: defaultValues?.brandVoice || "",
       role: defaultValues?.role || "team",
+      password: defaultValues?.password || "",
     });
     // eslint-disable-next-line
   }, [defaultValues]);
@@ -230,6 +233,22 @@ export const UserForm = ({
                 </FormItem>
               )}
             />
+
+            {!isEdit && (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Temporary Password</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter temporary password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter>
               <Button
